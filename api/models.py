@@ -16,7 +16,7 @@ class User(AbstractUser):
         ('US', 'user')
     }
 
-    username = models.CharField(max_length=50, unique=True)
+    username = models.CharField(max_length=50, unique=False, default='')
     bio = models.CharField(max_length=2000)
     role = models.CharField(max_length=2, choices=CHOICES, default='user')
     email = models.EmailField(ugettext_lazy('email address'), unique=True)
