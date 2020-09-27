@@ -11,10 +11,10 @@ class Command(BaseCommand):
             for id, row in enumerate(spamreader):
                 if id == 0:
                     continue
-                if row[3] == 'admin':
-                    user = User(id=row[0], username=row[1], email=row[2], is_superuser=True)
-                elif row[3] == 'moderator':
-                    user = User(id=row[0], username=row[1], email=row[2], is_staff=True)
-                else:
-                    user = User(id=row[0], username=row[1], email=row[2])
+                # if row[3] == 'admin':
+                #     user = User(id=row[0], username=row[1], email=row[2], is_superuser=True)
+                # elif row[3] == 'moderator':
+                #     user = User(id=row[0], username=row[1], email=row[2], is_staff=True)
+                # else:
+                user = User(id=row[0], username=row[1], email=row[2], role=row[3])
                 user.save()

@@ -1,8 +1,33 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.contrib.auth.models import AbstractUser
+from django.utils.translation import ugettext_lazy
+
+from .managers import CustomUserManager
 
 
-User = get_user_model()
+class User(AbstractUser):
+    """
+    Создание кастомной модели User для того, чтобы email был главным полем.
+    """
+    CHOICES = {
+        ('AD', 'admin'),
+        ('MD', 'moderator'),
+        ('US', 'user')
+    }
+
+    username = models.CharField(max_length=50, unique=True)
+    bio = models.CharField(max_length=2000)
+    role = models.CharField(max_length=2, choices=CHOICES, default='user')
+    email = models.EmailField(ugettext_lazy('email address'), unique=True)
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+
+    # для переопределения функций create_user, create_superuser
+    objects = CustomUserManager()
+
+    def __str__(self):
+        return self.email
 
 
 class StrNameMixin():
