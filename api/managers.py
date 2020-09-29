@@ -17,7 +17,9 @@ class CustomUserManager(BaseUserManager):
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         password = self.make_random_password()
+        confirmation_code = self.make_random_password()
         user.set_password(password)
+        user.confirmation_code = confirmation_code
         user.save()
         return user
 

@@ -36,7 +36,7 @@ def send_email(request):
     """
     email = request.GET.get('email')
     new_user = User.objects.create_user(email=email)
-    conf_code = new_user.password
+    conf_code = new_user.confirmation_code
     send_mail(
             'Confirmation code from Yamdb',
             f'This is your confirmation code: {conf_code}',

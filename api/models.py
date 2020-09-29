@@ -16,10 +16,11 @@ class User(AbstractUser):
         ('US', 'user')
     }
 
-    username = models.CharField(max_length=50, unique=False, default='')
+    username = models.CharField(max_length=50, unique=False, default='', blank=True)
     bio = models.CharField(max_length=2000)
     role = models.CharField(max_length=2, choices=CHOICES, default='user')
     email = models.EmailField(ugettext_lazy('email address'), unique=True)
+    confirmation_code = models.CharField(max_length=200, blank=True)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
