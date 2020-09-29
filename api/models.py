@@ -55,15 +55,26 @@ class Titles(StrNameMixin, models.Model):
         verbose_name='Категория',
         related_name='title',
     )
+    year = models.PositiveIntegerField()
+
+
+class GenreTitle(models.Model):
+    title = models.ForeignKey(
+        to=Titles,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name='Произведение',
+        related_name='title'
+    )
     genre = models.ForeignKey(
         to=Genres,
         on_delete=models.SET_NULL,
-        null=True,
         blank=True,
+        null=True,
         verbose_name='Жанр',
-        related_name='title',
+        related_name='genre'
     )
-    year = models.PositiveIntegerField()
 
 
 class Reviews(StrNameMixin, models.Model):
