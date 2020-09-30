@@ -4,26 +4,34 @@ from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .models import Reviews, Comments, User  # Title
+from .models import Reviews, User, Titles # Comments
 from .serializers import ReviewSerializer, CommentSerializer, UserTokenSerializer
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
-    queryset = Reviews.objects.all()
     serializer_class = ReviewSerializer
 
-"""     def perform_create(self, serializer):
-        get_object_or_404(Title, id=self.kwargs.get('title_id'))
-        serializer.save(author=self.request.user) """
+    def get_queryset(self):
+        title = get_object_or_404(Titles, id=self.kwargs.get('titles_id'))
+        return title.reviews
+
+    # чтобы проверить создание отзыва нужна аутентификация
+    def perform_create(self, serializer):
+        get_object_or_404(Titles, id=self.kwargs.get('titles_id'))
+        serializer.save(author=self.request.user) # username
 
 
 class CommentsViewSet(viewsets.ModelViewSet):
-    queryset = Comments.objects.all()
     serializer_class = CommentSerializer
 
-"""     def perform_create(self, serializer):
-        get_object_or_404(Post, id=self.kwargs.get('post_id'))
-        serializer.save(author=self.request.user) """
+    def get_queryset(self):
+        review = get_object_or_404(Reviews, id=self.kwargs.get('reviews_id'))
+        return review.comments
+
+    # чтобы проверить создание коммента нужна аутентификация
+    def perform_create(self, serializer):
+        get_object_or_404(Reviews, id=self.kwargs.get('reviews_id'))
+        serializer.save(author=self.request.user) # username
 
 
 class TokenGetView(TokenObtainPairView):
