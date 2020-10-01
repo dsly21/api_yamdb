@@ -16,9 +16,10 @@ router.register(
 
 urlpatterns = [
     path('v1/', include(router.urls)),
-#     path('v1/auth/token/', views.TokenGetView.as_view(),
-#          name='token_obtain_pair'),
+    path('v1/auth/token/', views.TokenGetView.as_view(),
+         name='token_obtain_pair'),
     path('v1/auth/token/refresh/', TokenRefreshView.as_view(),
          name='token_refresh'),
-#     path('v1/auth/email/', views.send_email)
+    path('v1/auth/email/', views.send_email),
+    path('v1/users/', views.UsersViewSet.as_view())
 ]

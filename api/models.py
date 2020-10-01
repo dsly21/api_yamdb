@@ -10,14 +10,14 @@ class User(AbstractUser):
     Создание кастомной модели User для того, чтобы email был главным полем.
     """
     CHOICES = {
-        ('AD', 'admin'),
-        ('MD', 'moderator'),
-        ('US', 'user')
+        ('admin', 'admin'),
+        ('moderator', 'moderator'),
+        ('user', 'user')
     }
 
-    username = models.CharField(max_length=50, unique=False, default='', blank=True)
-    bio = models.CharField(max_length=2000)
-    role = models.CharField(max_length=2, choices=CHOICES, default='user')
+    username = models.CharField(max_length=50, unique=True, blank=True)
+    bio = models.TextField(max_length=2000, blank=True)
+    role = models.CharField(max_length=10, choices=CHOICES, default='user')
     email = models.EmailField(ugettext_lazy('email address'), unique=True)
     confirmation_code = models.CharField(max_length=200, blank=True)
     USERNAME_FIELD = 'email'
@@ -25,9 +25,6 @@ class User(AbstractUser):
 
     # для переопределения функций create_user, create_superuser
     objects = CustomUserManager()
-
-    def __str__(self):
-        return self.email
 
 
 class StrNameMixin():
