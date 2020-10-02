@@ -32,4 +32,5 @@ urlpatterns = [
         name='token_refresh'
     ),
     path('v1/auth/email/', views.send_email),
+    path('v1/users/', views.UsersViewSet.as_view())
 ]
