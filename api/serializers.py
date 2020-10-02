@@ -5,7 +5,7 @@ from rest_framework.fields import EmailField
 from rest_framework_simplejwt import exceptions
 from rest_framework_simplejwt import serializers as ser
 
-from .models import Category, Comments, Genre, Reviews, Title, User
+from .models import Category, Comment, Genre, Review, Title, User
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -15,7 +15,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ('__all__')
-        model = Reviews
+        model = Review
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -25,7 +25,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ('__all__')
-        model = Comments
+        model = Comment
 
 
 class UserTokenSerializer(ser.TokenObtainPairSerializer):

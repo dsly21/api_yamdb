@@ -75,7 +75,7 @@ class Title(StrNameMixin, models.Model):
     )
 
 
-class Reviews(StrNameMixin, models.Model):
+class Review(StrNameMixin, models.Model):
     text = models.TextField(max_length=500)
     score = models.PositiveIntegerField() # дописать range значений
     author = models.ForeignKey(
@@ -90,19 +90,15 @@ class Reviews(StrNameMixin, models.Model):
     pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
 
 
-class Comments(StrNameMixin, models.Model):
+class Comment(StrNameMixin, models.Model):
     text = models.TextField(max_length=500)
     author = models.ForeignKey(
                                 User, on_delete=models.CASCADE,
                                 related_name="comments"
     )
-    title = models.ForeignKey(
-                                Title, on_delete=models.SET_NULL,
-                                blank=True, null=True,
-                                verbose_name='произведение',
-                                related_name="comment")
+
     review = models.ForeignKey(
-                                Reviews, on_delete=models.SET_NULL,
+                                Review, on_delete=models.SET_NULL,
                                 blank=True, null=True,
                                 verbose_name='отзыв',
                                 related_name="comments")

@@ -11,7 +11,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .filters import TitleFilter
 from .mixins import PaginationMixin
-from .models import Category, Comments, Genre, Reviews, Title, User
+from .models import Category, Comment, Genre, Review, Title, User
 from .permissions import IsAdminOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer,
@@ -22,25 +22,24 @@ class ReviewsViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
 
     def get_queryset(self):
-        title = get_object_or_404(Titles, id=self.kwargs.get('titles_id'))
+        title = get_object_or_404(Title, id=self.kwargs.get('titles_id'))
         return title.reviews
 
-    # чтобы проверить создание отзыва нужна аутентификация
     def perform_create(self, serializer):
-        get_object_or_404(Titles, id=self.kwargs.get('titles_id'))
-        serializer.save(author=self.request.user) # username
-
+        title = get_object_or_404(Title, id=self.kwargs.get('titles_id'))
+        serializer.save(author=self.request.user)
+        serializer.save(title=title)
 
 class CommentsViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
 
-    # чтобы проверить создание коммента нужна аутентификация
     def perform_create(self, serializer):
-        get_object_or_404(Reviews, id=self.kwargs.get('reviews_id'))
-        serializer.save(author=self.request.user) # username
+        review = get_object_or_404(Review, id=self.kwargs.get('reviews_id'))
+        serializer.save(author=self.request.user)
+        serializer.save(review=review)
 
     def get_queryset(self):
-        review = get_object_or_404(Reviews, id=self.kwargs.get('reviews_id'))
+        review = get_object_or_404(Review, id=self.kwargs.get('reviews_id'))
         return review.comments
 
 
