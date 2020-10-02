@@ -20,4 +20,5 @@ db.sqlite3
 .venv
 
 sent_emails/
+requests.http
 api/migrations/000*

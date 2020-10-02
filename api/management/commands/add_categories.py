@@ -1,6 +1,6 @@
 import csv
 
-from api.models import Categories
+from api.models import Category
 from django.core.management.base import BaseCommand
 
 
@@ -11,5 +11,5 @@ class Command(BaseCommand):
             for id, row in enumerate(spamreader):
                 if id == 0:
                     continue
-                category = Categories(id=row[0], name=row[1], slug=row[2])
+                category = Category(id=row[0], name=row[1], slug=row[2])
                 category.save()
