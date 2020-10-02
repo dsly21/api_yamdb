@@ -1,7 +1,8 @@
 import csv
 
-from api.models import Genres, GenreTitle, Titles
 from django.core.management.base import BaseCommand
+
+from api.models import Genres, GenreTitle, Titles
 
 
 class Command(BaseCommand):

@@ -1,5 +1,5 @@
 from django.contrib.auth.base_user import BaseUserManager
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext_lazy as ugtl
 
 
 class CustomUserManager(BaseUserManager):
@@ -13,7 +13,7 @@ class CustomUserManager(BaseUserManager):
         Create and save a User with the given email.
         """
         if not email:
-            raise ValueError(_('The Email must be set'))
+            raise ValueError(ugtl('The Email must be set'))
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         password = self.make_random_password()
@@ -32,7 +32,7 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_active', True)
 
         if extra_fields.get('is_staff') is not True:
-            raise ValueError(_('Superuser must have is_staff=True.'))
+            raise ValueError(ugtl('Superuser must have is_staff=True.'))
         if extra_fields.get('is_superuser') is not True:
-            raise ValueError(_('Superuser must have is_superuser=True.'))
+            raise ValueError(ugtl('Superuser must have is_superuser=True.'))
         return self.create_user(email, **extra_fields)

@@ -1,7 +1,8 @@
 import csv
 
-from api.models import Titles, Categories
 from django.core.management.base import BaseCommand
+
+from api.models import Categories, Titles
 
 
 class Command(BaseCommand):

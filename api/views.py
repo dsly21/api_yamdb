@@ -1,14 +1,15 @@
-import django_filters
 from django.core.mail import send_mail
 from django.http import HttpResponse
-from rest_framework import viewsets, permissions, generics, status
 from django.shortcuts import get_object_or_404
+from django_filters import rest_framework
+from rest_framework import generics, permissions, status, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .models import Reviews, Comments, User  # Title
-from .serializers import ReviewSerializer, CommentSerializer, UserTokenSerializer, UserSerializer
+from .models import Comments, Reviews, User  # Title
+from .serializers import (CommentSerializer, ReviewSerializer, UserSerializer,
+                          UserTokenSerializer)
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
@@ -53,7 +54,7 @@ class UsersViewSet(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAdminUser, permissions.IsAuthenticated]
-    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filter_backends = [rest_framework.DjangoFilterBackend]
     filterset_fields = ['username',]
     pagination_class = PageNumberPagination
 
@@ -69,8 +70,25 @@ class UsersViewSet(generics.ListCreateAPIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
-class UserMeView(generics.UpdateAPIView):
-    queryset = User.objects.filter(id=1)
+class UserMeView(generics.RetrieveUpdateAPIView):
+    queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated, ]
+    permission_classes = [permissions.IsAuthenticated,]
 
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        obj = get_object_or_404(queryset, pk=self.request.user.id)
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+
+class UserView(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        obj = get_object_or_404(queryset, username=self.kwargs['username'])
+        self.check_object_permissions(self.request, obj)
+        return obj
