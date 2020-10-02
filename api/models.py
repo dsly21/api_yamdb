@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import ugettext_lazy
@@ -79,16 +80,16 @@ class Title(StrNameMixin, models.Model):
 
 class Reviews(StrNameMixin, models.Model):
     text = models.TextField(max_length=500)
-    score = models.PositiveIntegerField()
+    score = models.PositiveIntegerField() # дописать range значений
     author = models.ForeignKey(
                                 User, on_delete=models.CASCADE,
-                                related_name="review"
+                                related_name="reviews"
     )
     title = models.ForeignKey(
                                 Title, on_delete=models.SET_NULL,
                                 blank=True, null=True,
                                 verbose_name='произведение',
-                                related_name="review")
+                                related_name="reviews")
     pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
 
 
@@ -107,5 +108,6 @@ class Comments(StrNameMixin, models.Model):
                                 Reviews, on_delete=models.SET_NULL,
                                 blank=True, null=True,
                                 verbose_name='отзыв',
-                                related_name="comment")
+                                related_name="comments")
+
     pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
