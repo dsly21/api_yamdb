@@ -1,12 +1,11 @@
-import django_filters
 from django.core.mail import send_mail
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import (filters, generics, mixins, permissions, status,
+                            viewsets)
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, generics, mixins, status, viewsets, permissions
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .filters import TitleFilter
@@ -15,19 +14,19 @@ from .models import Category, Comments, Genre, Reviews, Title, User
 from .permissions import IsAdminOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer,
-                          UserTokenSerializer, UserSerializer)
+                          UserSerializer, UserTokenSerializer)
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
 
     def get_queryset(self):
-        title = get_object_or_404(Titles, id=self.kwargs.get('titles_id'))
+        title = get_object_or_404(Title, id=self.kwargs.get('titles_id'))
         return title.reviews
 
     # чтобы проверить создание отзыва нужна аутентификация
     def perform_create(self, serializer):
-        get_object_or_404(Titles, id=self.kwargs.get('titles_id'))
+        get_object_or_404(Title, id=self.kwargs.get('titles_id'))
         serializer.save(author=self.request.user) # username
 
 
@@ -85,6 +84,7 @@ class GenreView(
     filter_backends = (filters.SearchFilter, )
     search_fields = ('slug', 'name')
     lookup_field = 'slug'
+    permission_classes = (IsAdminOrReadOnly, )
 
 
 class TitleView(PaginationMixin, viewsets.ModelViewSet):
@@ -116,7 +116,7 @@ class UsersViewSet(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAdminUser, permissions.IsAuthenticated]
-    filter_backends = [django_filters.rest_framework.DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend]
     filterset_fields = ['username',]
     pagination_class = PageNumberPagination
 
@@ -136,4 +136,3 @@ class UserMeView(generics.UpdateAPIView):
     queryset = User.objects.filter(id=1)
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated, ]
-

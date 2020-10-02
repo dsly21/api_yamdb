@@ -1,11 +1,5 @@
-from django.contrib.auth import authenticate
 from rest_framework import serializers
-from django.http import HttpResponse
 from rest_framework.exceptions import ValidationError
-from rest_framework.response import Response
-from rest_framework import serializers, status
-from rest_framework.fields import EmailField
-from rest_framework_simplejwt import exceptions
 from rest_framework_simplejwt import serializers as ser
 
 from .models import Category, Comments, Genre, Reviews, Title, User
