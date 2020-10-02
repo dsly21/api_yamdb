@@ -27,14 +27,16 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 class CommentsViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
 
-    def get_queryset(self):
-        review = get_object_or_404(Reviews, id=self.kwargs.get('reviews_id'))
-        return review.comments
-
     # чтобы проверить создание коммента нужна аутентификация
     def perform_create(self, serializer):
         get_object_or_404(Reviews, id=self.kwargs.get('reviews_id'))
         serializer.save(author=self.request.user) # username
+
+    def get_queryset(self):
+        review = get_object_or_404(Reviews, id=self.kwargs.get('reviews_id'))
+        return review.comments
+
+
 
 
 class TokenGetView(TokenObtainPairView):
