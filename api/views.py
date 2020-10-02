@@ -97,24 +97,24 @@ class TitleView(PaginationMixin, viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = TitleFilter
+    permission_classes = (IsAdminOrReadOnly, )
 
-    def create(self, request, *args, **kwargs):
-        if not request.data:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        title = Title.objects.create(
-            name=request.data['name'],
-            year=request.data.get('year', None),
-            description=request.data.get('description', None),
-            rating=request.data.get('rating', None),
-            category=Category.objects.get(slug=request.data.get('category'))
-        )
-        genres = Genre.objects.filter(slug__in=request.data.getlist('genre'))
-        title.genre.add(*genres)
-        serializer = TitleSerializer(title)
-        return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+    def add_data(self, serializer):
+        category = self.request.data.get('category', None)
+        if category is not None:
+            category = Category.objects.get(slug=category)
+            serializer.save(category=category)
+        genre = self.request.data.getlist('genre', None)
+        if genre is not None:
+            genre = Genre.objects.filter(slug__in=genre)
+            serializer.save(genre=genre)
+        serializer.save()
 
-    def update(self, request, *args, **kwargs):
-        super().update(self, request, *args, **kwargs)
+    def perform_create(self, serializer):
+        self.add_data(serializer)
+
+    def perform_update(self, serializer):
+        self.add_data(serializer)
 
 
 class UsersViewSet(generics.ListCreateAPIView):
