@@ -1,25 +1,26 @@
-import django_filters
 from django.core.mail import send_mail
 from django.http import HttpResponse
-from rest_framework import viewsets, permissions, generics, status
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, generics, mixins, status, viewsets
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework import (filters, generics, mixins, permissions, status,
+                            viewsets)
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .filters import TitleFilter
 from .mixins import PaginationMixin
 from .models import Category, Comment, Genre, Review, Title, User
-from .permissions import IsAdminOrReadOnly
+from .permissions import IsAdminOrReadOnly, CheckAuthorPermission
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer,
-                          UserTokenSerializer)
+                          UserSerializer, UserTokenSerializer)
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
+    permission_classes = (CheckAuthorPermission,)
+    #pagination_class = PageNumberPagination
 
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs.get('titles_id'))
@@ -32,6 +33,8 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
 class CommentsViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
+    permission_classes = (CheckAuthorPermission,)
+    #pagination_class = PageNumberPagination
 
     def perform_create(self, serializer):
         review = get_object_or_404(Review, id=self.kwargs.get('reviews_id'))
@@ -86,6 +89,7 @@ class GenreView(
     filter_backends = (filters.SearchFilter, )
     search_fields = ('slug', 'name')
     lookup_field = 'slug'
+    permission_classes = (IsAdminOrReadOnly, )
 
 
 class TitleView(PaginationMixin, viewsets.ModelViewSet):
@@ -111,3 +115,29 @@ class TitleView(PaginationMixin, viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         super().update(self, request, *args, **kwargs)
+
+
+class UsersViewSet(generics.ListCreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAdminUser, permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['username',]
+    pagination_class = PageNumberPagination
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+        username = serializer.validated_data['username']
+        if User.objects.filter(email=email).exists() or User.objects.filter(username=username).exists():
+            return Response(serializer.validated_data, status=status.HTTP_400_BAD_REQUEST)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
+class UserMeView(generics.UpdateAPIView):
+    queryset = User.objects.filter(id=1)
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated, ]

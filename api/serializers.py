@@ -1,8 +1,5 @@
-from django.contrib.auth import authenticate
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework.fields import EmailField
-from rest_framework_simplejwt import exceptions
 from rest_framework_simplejwt import serializers as ser
 
 from .models import Category, Comment, Genre, Review, Title, User
@@ -86,3 +83,16 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
+
+
+class UserSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        required=True,
+    )
+    email = serializers.EmailField(
+        required=True
+    )
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'username', 'bio', 'email', 'role']

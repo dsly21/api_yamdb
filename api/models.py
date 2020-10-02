@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import ugettext_lazy
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 from .managers import CustomUserManager
 
@@ -77,7 +78,7 @@ class Title(StrNameMixin, models.Model):
 
 class Review(StrNameMixin, models.Model):
     text = models.TextField(max_length=500)
-    score = models.PositiveIntegerField() # дописать range значений
+    score = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(10)])
     author = models.ForeignKey(
                                 User, on_delete=models.CASCADE,
                                 related_name="reviews"
