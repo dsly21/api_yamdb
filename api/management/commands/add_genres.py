@@ -1,6 +1,6 @@
 import csv
 
-from api.models import Genres
+from api.models import Genre
 from django.core.management.base import BaseCommand
 
 
@@ -11,5 +11,5 @@ class Command(BaseCommand):
             for id, row in enumerate(spamreader):
                 if id == 0:
                     continue
-                genre = Genres(id=row[0], name=row[1], slug=row[2])
+                genre = Genre(id=row[0], name=row[1], slug=row[2])
                 genre.save()

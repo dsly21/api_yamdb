@@ -1,6 +1,6 @@
 import csv
 
-from api.models import Titles, Categories
+from api.models import Title, Category
 from django.core.management.base import BaseCommand
 
 
@@ -11,8 +11,8 @@ class Command(BaseCommand):
             for id, row in enumerate(spamreader):
                 if id == 0:
                     continue
-                category = Categories.objects.get(pk=row[3])
-                title = Titles(
+                category = Category.objects.get(pk=row[3])
+                title = Title(
                     id=row[0], name=row[1], year=row[2], category=category
                 )
                 title.save()

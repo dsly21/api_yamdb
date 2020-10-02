@@ -1,11 +1,11 @@
 from django.contrib.auth import authenticate
-from rest_framework.exceptions import ValidationError
-from rest_framework_simplejwt import exceptions
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from rest_framework.fields import EmailField
+from rest_framework_simplejwt import exceptions
 from rest_framework_simplejwt import serializers as ser
 
-from .models import Reviews, Comments, User
+from .models import Category, Comments, Genre, Reviews, Title, User
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -65,3 +65,24 @@ class UserTokenSerializer(ser.TokenObtainPairSerializer):
         data['access'] = str(refresh.access_token)
 
         return data
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ('name', 'slug')
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Genre
+        fields = ('name', 'slug')
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    category = CategorySerializer(read_only=True)
+    genre = GenreSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Title
+        fields = '__all__'

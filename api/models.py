@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import ugettext_lazy
@@ -36,45 +35,45 @@ class StrNameMixin():
         return self.text
 
 
-class Categories(StrNameMixin, models.Model):
+class Category(StrNameMixin, models.Model):
     name = models.CharField(max_length=75)
-    slug = models.SlugField()
+    slug = models.SlugField(unique=True)
+
+    class Meta:
+        ordering = ('id', )
 
 
-class Genres(StrNameMixin, models.Model):
+class Genre(StrNameMixin, models.Model):
     name = models.CharField(max_length=50)
-    slug = models.SlugField()
+    slug = models.SlugField(unique=True)
+
+    class Meta:
+        ordering = ('id', )
 
 
-class Titles(StrNameMixin, models.Model):
-    name = models.CharField(max_length=255)
+class Title(StrNameMixin, models.Model):
+    name = models.CharField(
+        max_length=255, verbose_name='Название', blank=False
+    )
+    year = models.PositiveIntegerField(
+        blank=True, null=True, verbose_name='Год выпуска'
+    )
     category = models.ForeignKey(
-        to=Categories,
+        to=Category,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         verbose_name='Категория',
         related_name='title',
     )
-    year = models.PositiveIntegerField()
-
-
-class GenreTitle(models.Model):
-    title = models.ForeignKey(
-        to=Titles,
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-        verbose_name='Произведение',
-        related_name='title'
+    rating = models.PositiveIntegerField(
+        blank=True, null=True, verbose_name='Рейтинг на основе отзывов'
     )
-    genre = models.ForeignKey(
-        to=Genres,
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-        verbose_name='Жанр',
-        related_name='genre'
+    description = models.CharField(
+        max_length=255, blank=True, verbose_name='Описание'
+    )
+    genre = models.ManyToManyField(
+        to=Genre, verbose_name='Жанр', related_name='title'
     )
 
 
@@ -86,7 +85,7 @@ class Reviews(StrNameMixin, models.Model):
                                 related_name="review"
     )
     title = models.ForeignKey(
-                                Titles, on_delete=models.SET_NULL,
+                                Title, on_delete=models.SET_NULL,
                                 blank=True, null=True,
                                 verbose_name='произведение',
                                 related_name="review")
@@ -100,7 +99,7 @@ class Comments(StrNameMixin, models.Model):
                                 related_name="comments"
     )
     title = models.ForeignKey(
-                                Titles, on_delete=models.SET_NULL,
+                                Title, on_delete=models.SET_NULL,
                                 blank=True, null=True,
                                 verbose_name='произведение',
                                 related_name="comment")
