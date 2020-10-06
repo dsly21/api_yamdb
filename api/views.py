@@ -5,19 +5,16 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (filters, generics, mixins, permissions, status,
                             viewsets)
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
-from django.db.models import Avg
 
 from .filters import TitleFilter
-from .mixins import PaginationMixin
-from .models import Category, Genre, Review, Title, User
-from .permissions import IsAdminOrReadOnly, CheckAuthorOrStaffPermission
+from .mixins import PaginationMixin, BasicCategoryGenreMixin
+from .models import Category, Comment, Genre, Review, Title, User
+from .permissions import IsAdminOrReadOnly, CheckAuthorPermission
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer,
                           UserSerializer, UserTokenSerializer)
-
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
@@ -71,28 +68,14 @@ def send_email(request):
     return HttpResponse('Your confirmation code was sent to your email')
 
 
-class CategoryView(
-    PaginationMixin, mixins.DestroyModelMixin, mixins.ListModelMixin,
-    mixins.CreateModelMixin, viewsets.GenericViewSet
-):
+class CategoryView(BasicCategoryGenreMixin):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    filter_backends = (filters.SearchFilter, )
-    search_fields = ('slug', 'name')
-    lookup_field = 'slug'
-    permission_classes = (IsAdminOrReadOnly, )
 
 
-class GenreView(
-    PaginationMixin, mixins.DestroyModelMixin, mixins.ListModelMixin,
-    mixins.CreateModelMixin, viewsets.GenericViewSet
-):
+class GenreView(BasicCategoryGenreMixin):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    filter_backends = (filters.SearchFilter, )
-    search_fields = ('slug', 'name')
-    lookup_field = 'slug'
-    permission_classes = (IsAdminOrReadOnly, )
 
 
 class TitleView(PaginationMixin, viewsets.ModelViewSet):
@@ -100,23 +83,24 @@ class TitleView(PaginationMixin, viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = TitleFilter
+    permission_classes = (IsAdminOrReadOnly, )
 
-    def create(self, request, *args, **kwargs):
-        if not request.data:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        title = Title.objects.create(
-            name=request.data['name'],
-            year=request.data.get('year', None),
-            description=request.data.get('description', None),
-            category=Category.objects.get(slug=request.data.get('category'))
-        )
-        genres = Genre.objects.filter(slug__in=request.data.getlist('genre'))
-        title.genre.add(*genres)
-        serializer = TitleSerializer(title)
-        return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+    def add_data(self, serializer):
+        category = self.request.data.get('category', None)
+        if category is not None:
+            category = Category.objects.get(slug=category)
+            serializer.save(category=category)
+        genre = self.request.data.getlist('genre', None)
+        if genre is not None:
+            genre = Genre.objects.filter(slug__in=genre)
+            serializer.save(genre=genre)
+        serializer.save()
 
-    def update(self, request, *args, **kwargs):
-        super().update(self, request, *args, **kwargs)
+    def perform_create(self, serializer):
+        self.add_data(serializer)
+
+    def perform_update(self, serializer):
+        self.add_data(serializer)
 
 
 class UsersViewSet(generics.ListCreateAPIView):
