@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .filters import TitleFilter
-from .mixins import PaginationMixin
+from .mixins import PaginationMixin, BasicCategoryGenreMixin
 from .models import Category, Comment, Genre, Review, Title, User
 from .permissions import IsAdminOrReadOnly, CheckAuthorPermission
 from .serializers import (CategorySerializer, CommentSerializer,
@@ -68,28 +68,14 @@ def send_email(request):
     return HttpResponse('Your confirmation code was sent to your email')
 
 
-class CategoryView(
-    PaginationMixin, mixins.DestroyModelMixin, mixins.ListModelMixin,
-    mixins.CreateModelMixin, viewsets.GenericViewSet
-):
+class CategoryView(BasicCategoryGenreMixin):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    filter_backends = (filters.SearchFilter, )
-    search_fields = ('slug', 'name')
-    lookup_field = 'slug'
-    permission_classes = (IsAdminOrReadOnly, )
 
 
-class GenreView(
-    PaginationMixin, mixins.DestroyModelMixin, mixins.ListModelMixin,
-    mixins.CreateModelMixin, viewsets.GenericViewSet
-):
+class GenreView(BasicCategoryGenreMixin):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    filter_backends = (filters.SearchFilter, )
-    search_fields = ('slug', 'name')
-    lookup_field = 'slug'
-    permission_classes = (IsAdminOrReadOnly, )
 
 
 class TitleView(PaginationMixin, viewsets.ModelViewSet):
