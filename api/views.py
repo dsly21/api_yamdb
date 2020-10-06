@@ -5,13 +5,15 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (filters, generics, mixins, permissions, status,
                             viewsets)
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
+from django.db.models import Avg
 
 from .filters import TitleFilter
 from .mixins import PaginationMixin
-from .models import Category, Comment, Genre, Review, Title, User
-from .permissions import IsAdminOrReadOnly, CheckAuthorPermission
+from .models import Category, Genre, Review, Title, User
+from .permissions import IsAdminOrReadOnly, CheckAuthorOrStaffPermission
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer,
                           UserSerializer, UserTokenSerializer)
@@ -19,22 +21,24 @@ from .serializers import (CategorySerializer, CommentSerializer,
 
 class ReviewsViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (CheckAuthorPermission,)
-    #pagination_class = PageNumberPagination
+    permission_classes = (
+                            CheckAuthorOrStaffPermission,
+                            IsAuthenticatedOrReadOnly)
 
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs.get('titles_id'))
-        return title.reviews
+        return title.reviews.all()
 
     def perform_create(self, serializer):
         title = get_object_or_404(Title, id=self.kwargs.get('titles_id'))
-        serializer.save(author=self.request.user)
-        serializer.save(title=title)
+        serializer.save(author=self.request.user, title=title)
+
 
 class CommentsViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (CheckAuthorPermission,)
-    #pagination_class = PageNumberPagination
+    permission_classes = (
+                            CheckAuthorOrStaffPermission,
+                            IsAuthenticatedOrReadOnly)
 
     def perform_create(self, serializer):
         review = get_object_or_404(Review, id=self.kwargs.get('reviews_id'))
@@ -43,9 +47,7 @@ class CommentsViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         review = get_object_or_404(Review, id=self.kwargs.get('reviews_id'))
-        return review.comments
-
-
+        return review.comments.all()
 
 
 class TokenGetView(TokenObtainPairView):
@@ -93,7 +95,7 @@ class GenreView(
 
 
 class TitleView(PaginationMixin, viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
     serializer_class = TitleSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = TitleFilter
@@ -105,7 +107,6 @@ class TitleView(PaginationMixin, viewsets.ModelViewSet):
             name=request.data['name'],
             year=request.data.get('year', None),
             description=request.data.get('description', None),
-            rating=request.data.get('rating', None),
             category=Category.objects.get(slug=request.data.get('category'))
         )
         genres = Genre.objects.filter(slug__in=request.data.getlist('genre'))
@@ -122,7 +123,7 @@ class UsersViewSet(generics.ListCreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAdminUser, permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['username',]
+    filterset_fields = ['username', ]
     pagination_class = PageNumberPagination
 
     def create(self, request, *args, **kwargs):
@@ -131,10 +132,16 @@ class UsersViewSet(generics.ListCreateAPIView):
         email = serializer.validated_data['email']
         username = serializer.validated_data['username']
         if User.objects.filter(email=email).exists() or User.objects.filter(username=username).exists():
-            return Response(serializer.validated_data, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                            serializer.validated_data,
+                            status=status.HTTP_400_BAD_REQUEST)
+
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(
+                        serializer.data,
+                        status=status.HTTP_201_CREATED,
+                        headers=headers)
 
 
 class UserMeView(generics.UpdateAPIView):

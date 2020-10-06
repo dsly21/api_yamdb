@@ -10,6 +10,16 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only=True,
         slug_field='username')
 
+    def validate(self, attrs):
+        title = self.context["view"].kwargs.get("titles_id")
+        author = self.context["request"].user
+        request_method = self.context["request"].method
+        message = 'Author review already exist'
+        if request_method == "POST":
+            if Review.objects.filter(author=author, title=title).exists():
+                raise serializers.ValidationError(message)
+        return attrs
+
     class Meta:
         fields = ('__all__')
         model = Review
@@ -39,7 +49,8 @@ class UserTokenSerializer(ser.TokenObtainPairSerializer):
         self.fields['confirmation_code'] = ser.PasswordField()
 
     def _validate(self, attrs):
-        self.user = User.objects.filter(email=attrs[self.username_field]).first()
+        self.user = User.objects.filter(
+            email=attrs[self.username_field]).first()
 
         if not self.user:
             raise ValidationError('The user is not valid.')
@@ -49,7 +60,9 @@ class UserTokenSerializer(ser.TokenObtainPairSerializer):
                 raise ValidationError('Incorrect credentials.')
 
         if self.user is None or not self.user.is_active:
-            raise ValidationError('No active account found with the given credentials')
+            raise ValidationError(
+                                    'No active account found ',
+                                    'with the given credentials')
 
         return {}
 
@@ -79,6 +92,9 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(many=True, read_only=True)
+    # многое непонятно в rating
+    rating = serializers.DecimalField(read_only=True, max_digits=10,
+                                      decimal_places=1, coerce_to_string=False)
 
     class Meta:
         model = Title
@@ -95,4 +111,10 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'username', 'bio', 'email', 'role']
+        fields = [
+                    'first_name',
+                    'last_name',
+                    'username',
+                    'bio',
+                    'email',
+                    'role']

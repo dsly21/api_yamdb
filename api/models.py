@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import ugettext_lazy
@@ -65,9 +64,6 @@ class Title(StrNameMixin, models.Model):
         verbose_name='Категория',
         related_name='title',
     )
-    rating = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name='Рейтинг на основе отзывов'
-    )
     description = models.CharField(
         max_length=255, blank=True, verbose_name='Описание'
     )
@@ -78,7 +74,10 @@ class Title(StrNameMixin, models.Model):
 
 class Review(StrNameMixin, models.Model):
     text = models.TextField(max_length=500)
-    score = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(10)])
+    score = models.PositiveIntegerField(
+                                        validators=[
+                                            MinValueValidator(1),
+                                            MaxValueValidator(10)])
     author = models.ForeignKey(
                                 User, on_delete=models.CASCADE,
                                 related_name="reviews"
