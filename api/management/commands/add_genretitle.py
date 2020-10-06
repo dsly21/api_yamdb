@@ -1,5 +1,6 @@
 import csv
 
+from api.models import Genre, Title
 from django.core.management.base import BaseCommand
 
 from api.models import Genres, GenreTitle, Titles
@@ -12,10 +13,7 @@ class Command(BaseCommand):
             for id, row in enumerate(spamreader):
                 if id == 0:
                     continue
-                title_id = Titles.objects.get(pk=row[1])
-                genre_id = Genres.objects.get(pk=row[2])
+                title = Title.objects.get(pk=row[1])
+                genre = Genre.objects.get(pk=row[2])
 
-                genretitle = GenreTitle(
-                    id=row[0], title=title_id, genre=genre_id
-                )
-                genretitle.save()
+                title.genre.add(genre)

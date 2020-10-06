@@ -1,7 +1,8 @@
-from django.contrib.auth import get_user_model
+from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import ugettext_lazy
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 from .managers import CustomUserManager
 
@@ -33,77 +34,74 @@ class StrNameMixin():
         return self.text
 
 
-class Categories(StrNameMixin, models.Model):
+class Category(StrNameMixin, models.Model):
     name = models.CharField(max_length=75)
-    slug = models.SlugField()
+    slug = models.SlugField(unique=True)
+
+    class Meta:
+        ordering = ('id', )
 
 
-class Genres(StrNameMixin, models.Model):
+class Genre(StrNameMixin, models.Model):
     name = models.CharField(max_length=50)
-    slug = models.SlugField()
+    slug = models.SlugField(unique=True)
+
+    class Meta:
+        ordering = ('id', )
 
 
-class Titles(StrNameMixin, models.Model):
-    name = models.CharField(max_length=255)
+class Title(StrNameMixin, models.Model):
+    name = models.CharField(
+        max_length=255, verbose_name='Название', blank=False
+    )
+    year = models.PositiveIntegerField(
+        blank=True, null=True, verbose_name='Год выпуска'
+    )
     category = models.ForeignKey(
-        to=Categories,
+        to=Category,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         verbose_name='Категория',
         related_name='title',
     )
-    year = models.PositiveIntegerField()
-
-
-class GenreTitle(models.Model):
-    title = models.ForeignKey(
-        to=Titles,
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-        verbose_name='Произведение',
-        related_name='title'
+    description = models.CharField(
+        max_length=255, blank=True, verbose_name='Описание'
     )
-    genre = models.ForeignKey(
-        to=Genres,
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-        verbose_name='Жанр',
-        related_name='genre'
+    genre = models.ManyToManyField(
+        to=Genre, verbose_name='Жанр', related_name='title'
     )
 
 
-class Reviews(StrNameMixin, models.Model):
+class Review(StrNameMixin, models.Model):
     text = models.TextField(max_length=500)
-    score = models.PositiveIntegerField()
+    score = models.PositiveIntegerField(
+                                        validators=[
+                                            MinValueValidator(1),
+                                            MaxValueValidator(10)])
     author = models.ForeignKey(
                                 User, on_delete=models.CASCADE,
-                                related_name="review"
+                                related_name="reviews"
     )
     title = models.ForeignKey(
-                                Titles, on_delete=models.SET_NULL,
+                                Title, on_delete=models.SET_NULL,
                                 blank=True, null=True,
                                 verbose_name='произведение',
-                                related_name="review")
+                                related_name="reviews")
     pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
 
 
-class Comments(StrNameMixin, models.Model):
+class Comment(StrNameMixin, models.Model):
     text = models.TextField(max_length=500)
     author = models.ForeignKey(
                                 User, on_delete=models.CASCADE,
                                 related_name="comments"
     )
-    title = models.ForeignKey(
-                                Titles, on_delete=models.SET_NULL,
-                                blank=True, null=True,
-                                verbose_name='произведение',
-                                related_name="comment")
+
     review = models.ForeignKey(
-                                Reviews, on_delete=models.SET_NULL,
+                                Review, on_delete=models.SET_NULL,
                                 blank=True, null=True,
                                 verbose_name='отзыв',
-                                related_name="comment")
+                                related_name="comments")
+
     pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
