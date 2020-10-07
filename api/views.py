@@ -27,7 +27,6 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs.get('titles_id'))
-
         return title.reviews.all()
 
     def perform_create(self, serializer):
@@ -38,7 +37,8 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 class CommentsViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (
-                CheckAuthorOrStaffPermission, IsAuthenticatedOrReadOnly)
+                            CheckAuthorOrStaffPermission,
+                            IsAuthenticatedOrReadOnly)
 
     def perform_create(self, serializer):
         review = get_object_or_404(Review, id=self.kwargs.get('reviews_id'))
@@ -89,12 +89,10 @@ class TitleView(PaginationMixin, viewsets.ModelViewSet):
 
     def add_data(self, serializer):
         category = self.request.data.get('category', None)
-
         if category is not None:
             category = Category.objects.get(slug=category)
             serializer.save(category=category)
         genre = self.request.data.getlist('genre', None)
-
         if genre is not None:
             genre = Genre.objects.filter(slug__in=genre)
             serializer.save(genre=genre)
@@ -120,25 +118,36 @@ class UsersViewSet(generics.ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data['email']
         username = serializer.validated_data['username']
-
         if (
                 User.objects.filter(email=email).exists() or
                 User.objects.filter(username=username).exists()):
+
             return Response(
                             serializer.validated_data,
                             status=status.HTTP_400_BAD_REQUEST)
 
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-
         return Response(
                         serializer.data,
                         status=status.HTTP_201_CREATED,
                         headers=headers)
 
 
-class UserMeView(generics.UpdateAPIView):
-    queryset = User.objects.filter(id=1)
+class UserMeView(generics.RetrieveUpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated, ]
+
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        obj = get_object_or_404(queryset, pk=self.request.user.id)
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+
+class UserView(viewsets.ModelViewSet):
+    queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
 

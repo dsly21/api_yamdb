@@ -13,7 +13,8 @@ router.register('genres', views.GenreView)
 router.register(r'titles/(?P<titles_id>\d+)/reviews',
                 views.ReviewsViewSet, basename="reviews")
 router.register(
-                r'titles/(?P<titles_id>\d+)/reviews/(?P<reviews_id>\d+)/comments',
+                r'titles/(?P<titles_id>\d+)/'
+                r'reviews/(?P<reviews_id>\d+)/comments',
                 views.CommentsViewSet,
                 basename='comments')
 
