@@ -1,4 +1,5 @@
-from django.urls import path, include
+from django.urls import include, path
+from djoser import urls
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -31,5 +32,12 @@ urlpatterns = [
         name='token_refresh'
     ),
     path('v1/auth/email/', views.send_email),
-    path('v1/users/', views.UsersViewSet.as_view())
+    path('v1/users/', views.UsersViewSet.as_view()),
+    path('v1/users/me/', views.UserMeView.as_view()),
+    path('v1/users/<str:username>/', views.UserView.as_view({
+        'get': 'retrieve',
+        'put': 'update',
+        'patch': 'partial_update',
+        'delete': 'destroy',
+    })),
 ]
