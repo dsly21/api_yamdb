@@ -88,7 +88,6 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(many=True, read_only=True)
-    # многое непонятно в rating
     rating = serializers.DecimalField(read_only=True, max_digits=10,
                                       decimal_places=1, coerce_to_string=False)
 
@@ -107,7 +106,13 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'username', 'bio', 'email', 'role']
+        fields = [
+                    'first_name',
+                    'last_name',
+                    'username',
+                    'bio',
+                    'email',
+                    'role']
 
     def save(self, **kwargs):
         """
@@ -131,17 +136,17 @@ class UserSerializer(serializers.ModelSerializer):
         # Guard against incorrect use of `serializer.save(commit=False)`
         assert 'commit' not in kwargs, (
             "'commit' is not a valid keyword argument to the 'save()' method. "
-            "If you need to access data before committing to the database then "
-            "inspect 'serializer.validated_data' instead. "
-            "You can also pass additional keyword arguments to 'save()' if you "
-            "need to set extra attributes on the saved model instance. "
+            "If you need to access data before committing to the database then"
+            " inspect 'serializer.validated_data' instead. "
+            "You can also pass additional keyword arguments to 'save()' if you"
+            " need to set extra attributes on the saved model instance. "
             "For example: 'serializer.save(owner=request.user)'.'"
         )
 
         assert not hasattr(self, '_data'), (
             "You cannot call `.save()` after accessing `serializer.data`."
-            "If you need to access data before committing to the database then "
-            "inspect 'serializer.validated_data' instead. "
+            "If you need to access data before committing to the database then"
+            " inspect 'serializer.validated_data' instead. "
         )
 
         validated_data = dict(
