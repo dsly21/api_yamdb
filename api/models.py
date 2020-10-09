@@ -71,6 +71,10 @@ class Title(models.Model):
         to=Genre, verbose_name='Жанр', related_name='title'
     )
 
+    class Meta:
+        verbose_name = 'Произведение'
+        verbose_name_plural = 'Произведения'
+
 
 class Review(StrNameMixin, models.Model):
     text = models.TextField(verbose_name="текст")
