@@ -1,7 +1,9 @@
-from django.db import models
+from datetime import datetime
+
 from django.contrib.auth.models import AbstractUser
-from django.utils.translation import ugettext_lazy
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
+from django.utils.translation import ugettext_lazy
 
 from .managers import CustomUserManager
 
@@ -59,7 +61,10 @@ class Title(models.Model):
         max_length=255, verbose_name='Название', blank=False
     )
     year = models.PositiveIntegerField(
-        blank=True, null=True, verbose_name='Год выпуска'
+        blank=True,
+        null=True,
+        verbose_name='Год выпуска',
+        validators=[MaxValueValidator(datetime.now().year)],
     )
     category = models.ForeignKey(
         to=Category,
