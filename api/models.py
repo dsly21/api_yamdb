@@ -44,10 +44,12 @@ class Category(StrNameMixin, models.Model):
 
 
 class Genre(StrNameMixin, models.Model):
-    name = models.CharField(max_length=50)
-    slug = models.SlugField(unique=True)
+    name = models.CharField(max_length=50, verbose_name='Название')
+    slug = models.SlugField(unique=True, verbose_name='Ссылка')
 
     class Meta:
+        verbose_name = 'Жанр'
+        verbose_name_plural = 'Жанры'
         ordering = ('id', )
 
 
