@@ -3,7 +3,7 @@ from django.db.models import Avg
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import (generics, permissions, status,
+from rest_framework import (filters, generics, mixins, permissions, status,
                             viewsets)
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -11,9 +11,9 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .filters import TitleFilter
-from .mixins import PaginationMixin, BasicCategoryGenreMixin
+from .mixins import PaginationMixin
 from .models import Category, Genre, Review, Title, User
-from .permissions import IsAdminOrReadOnly, IsAdminOrAuthorOrReadOnly
+from .permissions import IsAdminOrAuthorOrReadOnly, IsAdminOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer,
                           UserSerializer, UserTokenSerializer)
@@ -69,12 +69,22 @@ def send_email(request):
     return HttpResponse('Your confirmation code was sent to your email')
 
 
-class CategoryView(BasicCategoryGenreMixin):
+class BasicCategoryGenre(
+    PaginationMixin, mixins.DestroyModelMixin, mixins.ListModelMixin,
+    mixins.CreateModelMixin, viewsets.GenericViewSet
+):
+    filter_backends = (filters.SearchFilter, )
+    search_fields = ('slug', 'name')
+    lookup_field = 'slug'
+    permission_classes = (IsAdminOrReadOnly, )
+
+
+class CategoryView(BasicCategoryGenre):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
 
-class GenreView(BasicCategoryGenreMixin):
+class GenreView(BasicCategoryGenre):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
 
