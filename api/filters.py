@@ -11,7 +11,7 @@ class TitleFilter(django_filters.rest_framework.FilterSet):
         field_name='category__slug', lookup_expr='iexact'
     )
     name = django_filters.CharFilter(
-        field_name='name', lookup_expr='contains'
+        field_name='name', lookup_expr='icontains'
     )
 
     class Meta:
