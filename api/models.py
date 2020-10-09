@@ -49,7 +49,7 @@ class Genre(StrNameMixin, models.Model):
         ordering = ('id', )
 
 
-class Title(StrNameMixin, models.Model):
+class Title(models.Model):
     name = models.CharField(
         max_length=255, verbose_name='Название', blank=False
     )
@@ -73,28 +73,39 @@ class Title(StrNameMixin, models.Model):
 
 
 class Review(StrNameMixin, models.Model):
-    text = models.TextField(max_length=500)
-    score = models.PositiveIntegerField(
+    text = models.TextField(verbose_name="текст")
+    score = models.PositiveIntegerField(verbose_name="оценка",
                                         validators=[
-                                            MinValueValidator(1),
-                                            MaxValueValidator(10)])
+                                            MinValueValidator(1, message="Минимальная оценка - 1"),
+                                            MaxValueValidator(10, message="Максимальная оценка - 10")])
     author = models.ForeignKey(
                                 User, on_delete=models.CASCADE,
-                                related_name="reviews"
+                                related_name="reviews",
+                                verbose_name="автор"
     )
     title = models.ForeignKey(
                                 Title, on_delete=models.SET_NULL,
                                 blank=True, null=True,
                                 verbose_name='произведение',
                                 related_name="reviews")
-    pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
+    pub_date = models.DateTimeField(
+                                    "Дата публикации",
+                                    auto_now_add=True,
+                                    db_index=True) # нужен ли тут verbose?
+
+    def __str__(self):
+        return self.text
+
+    class Meta:
+        verbose_name = "Отзыв"
 
 
-class Comment(StrNameMixin, models.Model):
-    text = models.TextField(max_length=500)
+class Comment(models.Model):
+    text = models.TextField(verbose_name="текст")
     author = models.ForeignKey(
                                 User, on_delete=models.CASCADE,
-                                related_name="comments"
+                                related_name="comments",
+                                verbose_name="автор"
     )
 
     review = models.ForeignKey(
@@ -103,4 +114,13 @@ class Comment(StrNameMixin, models.Model):
                                 verbose_name='отзыв',
                                 related_name="comments")
 
-    pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
+    pub_date = models.DateTimeField(
+                                    "Дата публикации",
+                                    auto_now_add=True,
+                                    db_index=True) # нужен ли тут verbose?
+
+    def __str__(self):
+        return self.text
+
+    class Meta:
+        verbose_name = "Комментарий"

@@ -13,7 +13,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from .filters import TitleFilter
 from .mixins import PaginationMixin, BasicCategoryGenreMixin
 from .models import Category, Genre, Review, Title, User
-from .permissions import IsAdminOrReadOnly, CheckAuthorOrStaffPermission
+from .permissions import IsAdminOrReadOnly, IsAdminOrAuthorOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer,
                           UserSerializer, UserTokenSerializer)
@@ -22,7 +22,7 @@ from .serializers import (CategorySerializer, CommentSerializer,
 class ReviewsViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (
-                            CheckAuthorOrStaffPermission,
+                            IsAdminOrAuthorOrReadOnly,
                             IsAuthenticatedOrReadOnly)
 
     def get_queryset(self):
@@ -37,13 +37,12 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 class CommentsViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (
-                            CheckAuthorOrStaffPermission,
+                            IsAdminOrAuthorOrReadOnly,
                             IsAuthenticatedOrReadOnly)
 
     def perform_create(self, serializer):
         review = get_object_or_404(Review, id=self.kwargs.get('reviews_id'))
-        serializer.save(author=self.request.user)
-        serializer.save(review=review)
+        serializer.save(author=self.request.user, review=review)
 
     def get_queryset(self):
         review = get_object_or_404(Review, id=self.kwargs.get('reviews_id'))
