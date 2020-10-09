@@ -70,7 +70,7 @@ class Title(models.Model):
         blank=True, verbose_name='Описание'
     )
     genre = models.ManyToManyField(
-        to=Genre, verbose_name='Жанр', related_name='title'
+        to=Genre, verbose_name='Жанр', related_name='titles'
     )
 
     class Meta:
