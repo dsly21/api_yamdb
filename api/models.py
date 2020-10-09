@@ -28,12 +28,7 @@ class User(AbstractUser):
     objects = CustomUserManager()
 
 
-class StrNameMixin():
-    def __str__(self):
-        return self.text
-
-
-class Category(StrNameMixin, models.Model):
+class Category(models.Model):
     name = models.CharField(max_length=75, verbose_name='Название')
     slug = models.SlugField(unique=True, verbose_name='Ссылка')
 
@@ -42,8 +37,11 @@ class Category(StrNameMixin, models.Model):
         verbose_name_plural = 'Категории'
         ordering = ('id', )
 
+    def __str__(self):
+        return f'<Категория: {self.name}>'
 
-class Genre(StrNameMixin, models.Model):
+
+class Genre(models.Model):
     name = models.CharField(max_length=50, verbose_name='Название')
     slug = models.SlugField(unique=True, verbose_name='Ссылка')
 
@@ -51,6 +49,9 @@ class Genre(StrNameMixin, models.Model):
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
         ordering = ('id', )
+
+    def __str__(self):
+        return f'<Жанр: {self.name}>'
 
 
 class Title(models.Model):
@@ -79,8 +80,11 @@ class Title(models.Model):
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
 
+    def __str__(self):
+        return f'<Произведение: {self.name}>'
 
-class Review(StrNameMixin, models.Model):
+
+class Review(models.Model):
     text = models.TextField(verbose_name="текст")
     score = models.PositiveIntegerField(verbose_name="оценка",
                                         validators=[
