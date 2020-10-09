@@ -34,10 +34,12 @@ class StrNameMixin():
 
 
 class Category(StrNameMixin, models.Model):
-    name = models.CharField(max_length=75)
-    slug = models.SlugField(unique=True)
+    name = models.CharField(max_length=75, verbose_name='Название')
+    slug = models.SlugField(unique=True, verbose_name='Ссылка')
 
     class Meta:
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
         ordering = ('id', )
 
 
