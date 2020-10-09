@@ -65,6 +65,7 @@ class Title(models.Model):
         null=True,
         verbose_name='Год выпуска',
         validators=[MaxValueValidator(datetime.now().year)],
+        db_index=True,
     )
     category = models.ForeignKey(
         to=Category,
