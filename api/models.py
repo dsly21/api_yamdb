@@ -10,22 +10,45 @@ class User(AbstractUser):
     """
     Создание кастомной модели User для того, чтобы email был главным полем.
     """
-    CHOICES = {
-        ('admin', 'admin'),
-        ('moderator', 'moderator'),
-        ('user', 'user')
-    }
+    class Role(models.TextChoices):
+        ADMIN = 'admin', 'admin'
+        MODERATOR = 'moderator', 'moderator'
+        USER = 'user', 'user'
 
-    username = models.CharField(max_length=50, unique=True, blank=True)
-    bio = models.TextField(max_length=2000, blank=True)
-    role = models.CharField(max_length=10, choices=CHOICES, default='user')
-    email = models.EmailField(ugettext_lazy('email address'), unique=True)
-    confirmation_code = models.CharField(max_length=200, blank=True)
+    username = models.CharField(max_length=50,
+                                blank=True, verbose_name='Ник')
+    bio = models.TextField(blank=True, verbose_name='Био')
+    role = models.CharField(max_length=30, choices=Role.choices,
+                            default=Role.USER, verbose_name='Роль')
+    email = models.EmailField('email address', unique=True)
+    confirmation_code = models.CharField(max_length=200, blank=True,
+                                         verbose_name='Код подтверждения')
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
+    @property
+    def is_admin(self):
+        if User.role == self.Role.ADMIN:
+            return True
+        return False
+
+    @property
+    def is_moderator(self):
+        if User.role == self.Role.MODERATOR:
+            return True
+        return False
+
+    @property
+    def is_user(self):
+        if User.role == self.Role.USER:
+            return True
+        return False
     # для переопределения функций create_user, create_superuser
     objects = CustomUserManager()
+
+    class Meta:
+        verbose_name = 'user'
+        verbose_name_plural = 'users'
 
 
 class StrNameMixin():
