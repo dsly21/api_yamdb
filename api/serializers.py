@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt import serializers as ser
 
 from .models import Category, Comment, Genre, Review, Title, User
@@ -61,9 +62,11 @@ class TitleSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         required=True,
+        validators=[UniqueValidator(queryset=User.objects.all())]
     )
     email = serializers.EmailField(
-        required=True
+        required=True,
+        validators=[UniqueValidator(queryset=User.objects.all())]
     )
 
     class Meta:
@@ -74,65 +77,3 @@ class UserSerializer(serializers.ModelSerializer):
                   'bio',
                   'email',
                   'role']
-
-    # def save(self, **kwargs):
-    #     """
-    #     При получении ключа 'role', изменение статусов is_staff, is_superuser
-    #     """
-    #     assert not hasattr(self, 'save_object'), (
-    #         'Serializer `%s.%s` has old-style version 2 `.save_object()` '
-    #         'that is no longer compatible with REST framework 3. '
-    #         'Use the new-style `.create()` and `.update()` methods instead.' %
-    #         (self.__class__.__module__, self.__class__.__name__)
-    #     )
-    #
-    #     assert hasattr(self, '_errors'), (
-    #         'You must call `.is_valid()` before calling `.save()`.'
-    #     )
-    #
-    #     assert not self.errors, (
-    #         'You cannot call `.save()` on a serializer with invalid data.'
-    #     )
-    #
-    #     # Guard against incorrect use of `serializer.save(commit=False)`
-    #     assert 'commit' not in kwargs, (
-    #         "'commit' is not a valid keyword argument to the 'save()' method. "
-    #         "If you need to access data before committing to the database then"
-    #         " inspect 'serializer.validated_data' instead. "
-    #         "You can also pass additional keyword arguments to 'save()' if you"
-    #         " need to set extra attributes on the saved model instance. "
-    #         "For example: 'serializer.save(owner=request.user)'.'"
-    #     )
-    #
-    #     assert not hasattr(self, '_data'), (
-    #         "You cannot call `.save()` after accessing `serializer.data`."
-    #         "If you need to access data before committing to the database then"
-    #         " inspect 'serializer.validated_data' instead. "
-    #     )
-    #
-    #     validated_data = dict(
-    #         list(self.validated_data.items()) +
-    #         list(kwargs.items())
-    #     )
-    #
-    #     if self.instance is not None:
-    #         if 'role' in validated_data.keys():
-    #             if validated_data['role'] == 'user':
-    #                 self.instance.is_staff = False
-    #                 self.instance.is_superuser = False
-    #             elif validated_data['role'] == 'moderator':
-    #                 self.instance.is_staff = True
-    #                 self.instance.is_superuser = False
-    #             elif validated_data['role'] == 'admin':
-    #                 self.instance.is_staff = True
-    #                 self.instance.is_superuser = True
-    #         self.instance = self.update(self.instance, validated_data)
-    #         assert self.instance is not None, (
-    #             '`update()` did not return an object instance.'
-    #         )
-    #     else:
-    #         self.instance = self.create(validated_data)
-    #         assert self.instance is not None, (
-    #             '`create()` did not return an object instance.'
-    #         )
-    #     return self.instance

@@ -15,7 +15,7 @@ class User(AbstractUser):
         MODERATOR = 'moderator', 'moderator'
         USER = 'user', 'user'
 
-    username = models.CharField(max_length=50,
+    username = models.CharField(max_length=50, unique=True,
                                 blank=True, verbose_name='Ник')
     bio = models.TextField(blank=True, verbose_name='Био')
     role = models.CharField(max_length=30, choices=Role.choices,
@@ -28,27 +28,17 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        if User.role == self.Role.ADMIN:
-            return True
-        return False
+        return self.role == self.Role.ADMIN or self.is_staff
 
     @property
     def is_moderator(self):
-        if User.role == self.Role.MODERATOR:
-            return True
-        return False
+        return self.role == self.Role.MODERATOR
 
-    @property
-    def is_user(self):
-        if User.role == self.Role.USER:
-            return True
-        return False
-    # для переопределения функций create_user, create_superuser
     objects = CustomUserManager()
 
     class Meta:
-        verbose_name = 'user'
-        verbose_name_plural = 'users'
+        verbose_name = 'пользователь'
+        verbose_name_plural = 'пользователи'
 
 
 class StrNameMixin():
