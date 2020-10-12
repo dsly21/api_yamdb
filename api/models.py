@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.utils.translation import ugettext_lazy
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 from .managers import CustomUserManager
@@ -75,8 +74,7 @@ class Title(StrNameMixin, models.Model):
         null=True,
         blank=True,
         verbose_name='Категория',
-        related_name='title',
-    )
+        related_name='title',)
     description = models.CharField(
         max_length=255, blank=True, verbose_name='Описание'
     )
