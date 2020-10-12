@@ -21,8 +21,6 @@ db.sqlite3
 
 sent_emails/
 requests.http
-api/migrations/000*
 tests/
 management\
 poetry-venv.py
-
