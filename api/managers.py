@@ -1,19 +1,17 @@
 from django.contrib.auth.base_user import BaseUserManager
-from django.utils.translation import ugettext_lazy as ugtl
 
 
 class CustomUserManager(BaseUserManager):
     """
-    Custom user model manager where email is the unique identifiers
-    for authentication instead of usernames.
+    Создание кастомной модели пользователя с confirmation code
     """
 
     def create_user(self, email, **extra_fields):
         """
-        Create and save a User with the given email.
+        Создание User через email
         """
         if not email:
-            raise ValueError(ugtl('The Email must be set'))
+            raise ValueError('Укажите email, пожалуйста.')
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         password = self.make_random_password()
@@ -25,14 +23,14 @@ class CustomUserManager(BaseUserManager):
 
     def create_superuser(self, email, **extra_fields):
         """
-        Create and save a SuperUser with the given email.
+        Создание SuperUser через email.
         """
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
 
         if extra_fields.get('is_staff') is not True:
-            raise ValueError(ugtl('Superuser must have is_staff=True.'))
+            raise ValueError('Superuser должен иметь is_staff=True.')
         if extra_fields.get('is_superuser') is not True:
-            raise ValueError(ugtl('Superuser must have is_superuser=True.'))
+            raise ValueError('Superuser должен иметь is_superuser=True.')
         return self.create_user(email, **extra_fields)

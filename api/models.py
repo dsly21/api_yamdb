@@ -3,7 +3,6 @@ from datetime import datetime
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.utils.translation import ugettext_lazy
 
 from .managers import CustomUserManager
 
@@ -12,22 +11,35 @@ class User(AbstractUser):
     """
     Создание кастомной модели User для того, чтобы email был главным полем.
     """
-    CHOICES = {
-        ('admin', 'admin'),
-        ('moderator', 'moderator'),
-        ('user', 'user')
-    }
+    class Role(models.TextChoices):
+        ADMIN = 'admin', 'admin'
+        MODERATOR = 'moderator', 'moderator'
+        USER = 'user', 'user'
 
-    username = models.CharField(max_length=50, unique=True, blank=True)
-    bio = models.TextField(max_length=2000, blank=True)
-    role = models.CharField(max_length=10, choices=CHOICES, default='user')
-    email = models.EmailField(ugettext_lazy('email address'), unique=True)
-    confirmation_code = models.CharField(max_length=200, blank=True)
+    username = models.CharField(max_length=50, unique=True,
+                                blank=True, verbose_name='Ник')
+    bio = models.TextField(blank=True, verbose_name='Био')
+    role = models.CharField(max_length=30, choices=Role.choices,
+                            default=Role.USER, verbose_name='Роль')
+    email = models.EmailField('email address', unique=True)
+    confirmation_code = models.CharField(max_length=200, blank=True,
+                                         verbose_name='Код подтверждения')
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
-    # для переопределения функций create_user, create_superuser
+    @property
+    def is_admin(self):
+        return self.role == self.Role.ADMIN or self.is_staff
+
+    @property
+    def is_moderator(self):
+        return self.role == self.Role.MODERATOR
+
     objects = CustomUserManager()
+
+    class Meta:
+        verbose_name = 'пользователь'
+        verbose_name_plural = 'пользователи'
 
 
 class Category(models.Model):
@@ -92,10 +104,12 @@ class Title(models.Model):
 
 class Review(models.Model):
     text = models.TextField(verbose_name="текст")
-    score = models.PositiveIntegerField(verbose_name="оценка",
-                                        validators=[
-                                            MinValueValidator(1, message="Минимальная оценка - 1"),
-                                            MaxValueValidator(10, message="Максимальная оценка - 10")])
+    score = models.PositiveIntegerField(
+        verbose_name="Оценка",
+        validators=[
+                    MinValueValidator(1, message="Минимальная оценка - 1"),
+                    MaxValueValidator(10, message="Максимальная оценка - 10")])
+
     author = models.ForeignKey(
                                 User, on_delete=models.CASCADE,
                                 related_name="reviews",
@@ -109,13 +123,14 @@ class Review(models.Model):
     pub_date = models.DateTimeField(
                                     "Дата публикации",
                                     auto_now_add=True,
-                                    db_index=True) # нужен ли тут verbose?
+                                    db_index=True)
 
     def __str__(self):
-        return self.text
+        return f'<Отзыв: {self.name}>'
 
     class Meta:
         verbose_name = "Отзыв"
+        verbose_name_plural = "Отзывы"
 
 
 class Comment(models.Model):
@@ -123,8 +138,7 @@ class Comment(models.Model):
     author = models.ForeignKey(
                                 User, on_delete=models.CASCADE,
                                 related_name="comments",
-                                verbose_name="автор"
-    )
+                                verbose_name="автор")
 
     review = models.ForeignKey(
                                 Review, on_delete=models.SET_NULL,
@@ -135,10 +149,11 @@ class Comment(models.Model):
     pub_date = models.DateTimeField(
                                     "Дата публикации",
                                     auto_now_add=True,
-                                    db_index=True) # нужен ли тут verbose?
+                                    db_index=True)
 
     def __str__(self):
-        return self.text
+        return f'<Комментарий: {self.name}>'
 
     class Meta:
         verbose_name = "Комментарий"
+        verbose_name_plural = "Комментарии"
