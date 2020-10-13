@@ -12,9 +12,9 @@ class User(AbstractUser):
     Создание кастомной модели User для того, чтобы email был главным полем.
     """
     class Role(models.TextChoices):
-        ADMIN = 'admin', 'admin'
-        MODERATOR = 'moderator', 'moderator'
-        USER = 'user', 'user'
+        ADMIN = 'admin'
+        MODERATOR = 'moderator'
+        USER = 'user'
 
     username = models.CharField(max_length=50, unique=True,
                                 blank=True, verbose_name='Ник')
@@ -27,6 +27,15 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
+    objects = CustomUserManager()
+
+    class Meta:
+        verbose_name = 'пользователь'
+        verbose_name_plural = 'пользователи'
+
+    def __str__(self):
+        return f'<Пользователь: {self.USERNAME_FIELD}>'
+
     @property
     def is_admin(self):
         return self.role == self.Role.ADMIN or self.is_staff
@@ -34,12 +43,6 @@ class User(AbstractUser):
     @property
     def is_moderator(self):
         return self.role == self.Role.MODERATOR
-
-    objects = CustomUserManager()
-
-    class Meta:
-        verbose_name = 'пользователь'
-        verbose_name_plural = 'пользователи'
 
 
 class Category(models.Model):

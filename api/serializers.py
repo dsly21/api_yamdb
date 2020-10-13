@@ -76,3 +76,15 @@ class UserSerializer(serializers.ModelSerializer):
                   'bio',
                   'email',
                   'role']
+
+
+class EmailSerializer(serializers.Serializer):
+    email = serializers.EmailField(
+        required=True,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+
+
+class GetTokenSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    confirmation_code = serializers.CharField(max_length=200, required=True)

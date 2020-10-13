@@ -17,10 +17,14 @@ router.register(
     basename='comments')
 router.register('users', views.UsersViewSet)
 
+extrapatterns = [
+    path('token/', views.get_token),
+    # email и confirmation code передаются в теле запроса
+    path('email/', views.send_email),
+    # email передается в теле запроса
+]
+
 urlpatterns = [
     path('v1/', include(router.urls)),
-    path('v1/auth/token/', views.get_token),
-    # email и confirmation code передаются в теле запроса
-    path('v1/auth/email/', views.send_email),
-    # email передается в теле запроса
+    path('v1/auth/', include(extrapatterns)),
 ]

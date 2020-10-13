@@ -19,7 +19,7 @@ from .permissions import (IsAdminOrReadOnly, IsAdminOrAuthorOrReadOnly,
                           IsAdminPerm)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer,
-                          UserSerializer)
+                          UserSerializer, GetTokenSerializer, EmailSerializer)
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
@@ -58,14 +58,15 @@ def send_email(request):
     """
     Функция для создания пользователя и отправки ему confirmation_code
     """
-    email = request.POST.get('email')
-    new_user = User.objects.create_user(email=email)
+    serializer = EmailSerializer(request.data)
+    serializer.is_valid()
+    new_user = User.objects.create_user(email=serializer.data['email'])
     conf_code = new_user.confirmation_code
     send_mail(
         'Ваш код подтверждения от Yamdb',
         f'Это ваш код подтверждения: {conf_code}',
         from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[email]
+        recipient_list=[serializer.data['email']]
     )
     return HttpResponse('Код подтверждения был отправлен на ваш email')
 
@@ -144,11 +145,15 @@ def get_tokens_for_user(user):
     }
 
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def get_token(request):
-    email = request.data.get('email')
-    user = get_object_or_404(User, email=email)
-    code = request.data.get('confirmation_code')
+    serializer = GetTokenSerializer(request.data)
+    serializer.is_valid()
+    user = get_object_or_404(User, email=serializer.data['email'])
+    code = serializer.data['confirmation_code']
     if user.confirmation_code == code:
         tokens = get_tokens_for_user(user)
         return Response(tokens)
-    return Response('неверный код подтверждения.')
+    return Response('неверный код подтверждения.',
+                    status=status.HTTP_400_BAD_REQUEST)
