@@ -22,6 +22,4 @@ class IsAdminOrAuthorOrReadOnly(permissions.BasePermission):
 
 class IsAdminPerm(permissions.BasePermission):
     def has_permission(self, request, view):
-        if request.user.is_anonymous:
-            return False
-        return request.user.is_admin
+        return request.user.is_authenticated and request.user.is_admin
