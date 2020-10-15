@@ -58,15 +58,18 @@ def send_email(request):
     """
     Функция для создания пользователя и отправки ему confirmation_code
     """
-    serializer = EmailSerializer(request.data)
-    serializer.is_valid()
-    new_user = User.objects.create_user(email=serializer.data['email'])
-    conf_code = new_user.confirmation_code
+    serializer = EmailSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    email = serializer.data.get('email', None)
+    username = serializer.data.get('username', None)
+    user = User.objects.create_user(email=email,
+                                    username=username)
+    conf_code = user.confirmation_code
     send_mail(
         'Ваш код подтверждения от Yamdb',
         f'Это ваш код подтверждения: {conf_code}',
         from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[serializer.data['email']]
+        recipient_list=[email]
     )
     return HttpResponse('Код подтверждения был отправлен на ваш email')
 
@@ -75,10 +78,10 @@ class BasicCategoryGenre(
     PaginationMixin, mixins.DestroyModelMixin, mixins.ListModelMixin,
     mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
-    filter_backends = (filters.SearchFilter, )
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('slug', 'name')
     lookup_field = 'slug'
-    permission_classes = (IsAdminOrReadOnly, )
+    permission_classes = (IsAdminOrReadOnly,)
 
 
 class CategoryView(BasicCategoryGenre):
@@ -148,8 +151,8 @@ def get_tokens_for_user(user):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def get_token(request):
-    serializer = GetTokenSerializer(request.data)
-    serializer.is_valid()
+    serializer = GetTokenSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
     user = get_object_or_404(User, email=serializer.data['email'])
     code = serializer.data['confirmation_code']
     if user.confirmation_code == code:

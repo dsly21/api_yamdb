@@ -16,7 +16,7 @@ class User(AbstractUser):
         MODERATOR = 'moderator'
         USER = 'user'
 
-    username = models.CharField(max_length=50, unique=True,
+    username = models.CharField(max_length=50, unique=True, null=True,
                                 blank=True, verbose_name='Ник')
     bio = models.TextField(blank=True, verbose_name='Био')
     role = models.CharField(max_length=30, choices=Role.choices,
