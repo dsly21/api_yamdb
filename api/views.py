@@ -2,6 +2,7 @@ from django.core.mail import send_mail
 from django.db.models import Avg
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.utils.crypto import get_random_string
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (filters, mixins, permissions, status,
                             viewsets)
@@ -62,12 +63,13 @@ def send_email(request):
     serializer.is_valid(raise_exception=True)
     email = serializer.data.get('email', None)
     username = serializer.data.get('username', None)
-    user = User.objects.create_user(email=email,
-                                    username=username)
-    conf_code = user.confirmation_code
+    user, _ = User.objects.get_or_create(email=email,
+                                         username=username)
+    user.confirmation_code = get_random_string()
+    user.save()
     send_mail(
         'Ваш код подтверждения от Yamdb',
-        f'Это ваш код подтверждения: {conf_code}',
+        f'Это ваш код подтверждения: {user.confirmation_code}',
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[email]
     )
@@ -152,11 +154,12 @@ def get_tokens_for_user(user):
 @permission_classes([AllowAny])
 def get_token(request):
     serializer = GetTokenSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     user = get_object_or_404(User, email=serializer.data['email'])
     code = serializer.data['confirmation_code']
     if user.confirmation_code == code:
         tokens = get_tokens_for_user(user)
-        return Response(tokens)
+        return Response(tokens, status=status.HTTP_200_OK)
     return Response('неверный код подтверждения.',
                     status=status.HTTP_400_BAD_REQUEST)
